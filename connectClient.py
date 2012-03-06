@@ -55,7 +55,7 @@ class CEE:
 			'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
 			'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
-			The following parameters only have meaning when 'wave' is not constant:
+			The following parameters only have meaning when 'wave' is not 'constant':
 				'amplitude' determines the maximum offset from center.
 				'frequency' is the cycles per second.
 				'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
