@@ -12,7 +12,7 @@ class CEE:
 	def __init__(self, devID = "com.nonolithlabs.cee*"):
 		""" Starts an HTTP connection, determines the target device ID, and starts capture."""
 		self.connection = httplib.HTTPConnection("localhost:9003")
-		atexit.register(self.onClose)
+		atexit.register(self._onClose)
 
 		if devID == "com.nonolithlabs.cee*":
 			self.devID = devID
@@ -36,7 +36,7 @@ class CEE:
 		self.connection.request("POST", "/rest/v1/devices/%s" % self.devID, options, headers)
 		self.connection.getresponse()
 
-	def onClose(self):
+	def _onClose(self):
 		""" Stop capturing and close the HTTP connection."""
 		options = {"capture":"off"}
 		options = urllib.urlencode(options)
