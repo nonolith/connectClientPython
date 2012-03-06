@@ -1,8 +1,7 @@
 ### Pythonic abstraction layer for Nonolith Connect's RESTful API.
-### Released under the terms of the GNU GPLv3+
-### (C) 2012 Nonolith Labs, LLC
-### Authors:
-###   Ian Daniher 
+#### Released under the terms of the GNU GPLv3+
+#### (C) 2012 Nonolith Labs, LLC
+####   Ian Daniher 
 
 This is a simple abstraction layer for the low-speed API provided by Nonolith Connect V1.1.
 
@@ -10,27 +9,42 @@ For API documentation, see [The Nonolith Wiki](http://wiki.nonolithlabs.com/cee/
 
 This Python module provides a 'CEE' class with methods getOutput, setOutput, and getInput. 
 
+-----
+
 	def getOutput(self, channel = "a"):
-		""" Return a dictionary containing the output state of a given channel."""
+
+Return a dictionary containing the output state of a given channel.
+
+----
 
 	def setOutput(self, channel = "a", stream = "d", value = 0, wave="constant", amplitude = None, frequency = 0, relPhase = 1, phase = 0):
-		""" Set the output state for a given channel.
-			'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
-			'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
-			'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
-			The following parameters only have meaning when 'wave' is not constant:
-				'amplitude' determines the maximum offset from center.
-				'frequency' is the cycles per second.
-				'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
-				'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1)."""
+	
+Set the output state for a given channel.
+
+* 'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
+* 'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
+* 'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
+
+The following parameters only have meaning when 'wave' is not 'constant':
+
+* 'amplitude' determines the maximum offset from center.
+* 'frequency' is the cycles per second.
+* 'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
+* 'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1).
+
+-----
 
 	def getInput(self, channel = "a", resample = .01, count = 1):
-		""" Returns a pair of list indicating the measured state of the specified channel.
-			The first list is measured voltage, the second list is measured current.
-			Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds."""
 
+Returns a pair of list indicating the measured state of the specified channel.
 
-Usage example:
+The first list is measured voltage, the second list is measured current.
+
+Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds."""
+
+-----
+
+### Usage examples:
 
 	CEE = CEE()
 	# matches any CEE
