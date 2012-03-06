@@ -1,58 +1,40 @@
-# __NAME__
+### Pythonic abstraction layer for Nonolith Connect's RESTful API.
+### Released under the terms of the GNU GPLv3+
+### (C) 2012 Nonolith Labs, LLC
+### Authors:
+###   Ian Daniher 
 
-connectClient
+This is a simple abstraction layer for the low-speed API provided by Nonolith Connect V1.1.
 
-# __DESCRIPTION__
+For API documentation, see [The Nonolith Wiki](http://wiki.nonolithlabs.com/cee/Simple_REST_API_V1/)
 
-#"!/usr/bin/python
-# Pythonic abstraction layer for Nonolith Connect's RESTful API.
-# Released under the terms of the GNU GPLv3+
-# (C) 2012 Nonolith Labs, LLC
-# Authors:
-#   Ian Daniher
+This Python module provides a 'CEE' class with methods getOutput, setOutput, and getInput. 
 
-# __CLASSES__
+	def getOutput(self, channel = "a"):
+		""" Return a dictionary containing the output state of a given channel."""
 
-builtins.object
-    CEE
+	def setOutput(self, channel = "a", stream = "d", value = 0, wave="constant", amplitude = None, frequency = 0, relPhase = 1, phase = 0):
+		""" Set the output state for a given channel.
+			'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
+			'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
+			'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
+			The following parameters only have meaning when 'wave' is not constant:
+				'amplitude' determines the maximum offset from center.
+				'frequency' is the cycles per second.
+				'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
+				'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1)."""
 
-## class __CEE__
-****************************************
-
-### __methods__
-****************************************
-#### def __\__init__\__(self, devID='com.nonolithlabs.cee*'):
-
-Starts an HTTP connection, determines the target device ID, and starts capture.
-
-#### def __getInput__(self, channel='a', resample=0.01, count=1):
-
-Returns a pair of list indicating the measured state of the specified channel.
-The first list is measured voltage, the second list is measured current.
-Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds.
-
-#### def __getOutput__(self, channel='a'):
-
-Return a dictionary containing the output state of a given channel.
-
-#### def __onClose__(self):
-
-Stop capturing and close the HTTP connection.
-
-#### def __setOutput__(self, channel='a', stream='d', value=0, wave='constant', amplitude=None, frequency=0, relPhase=1, phase=0):
-
-Set the output state for a given channel.
-'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
-'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
-'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
-The following parameters only have meaning when 'wave' is not constant:
-        'amplitude' determines the maximum offset from center.
-        'frequency' is the cycles per second.
-        'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
-        'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1).
-
-# __FILE__
-
-/Users/it/projects/cee/connectClientPython/connectClient.py
+	def getInput(self, channel = "a", resample = .01, count = 1):
+		""" Returns a pair of list indicating the measured state of the specified channel.
+			The first list is measured voltage, the second list is measured current.
+			Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds."""
 
 
+Usage example:
+
+	CEE = CEE()
+	# matches any CEE
+	CEE.setOutput(stream = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100)
+	# sources a 100Hz sinewave centered at 1V with a 2V pk-pk amplitude
+	print(CEE.getInput(resample = 0, count = 100))
+	# prints 100 un-averaged samples
