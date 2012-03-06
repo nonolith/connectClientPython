@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#"!/usr/bin/python
 # Pythonic abstraction layer for Nonolith Connect's RESTful API.
 # Released under the terms of the GNU GPLv3+
 # (C) 2012 Nonolith Labs, LLC
@@ -86,5 +86,5 @@ class CEE:
 if __name__ == "__main__":
 	from numpy import arange
 	CEE = CEE()
-	print CEE.setOutput(stream = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100)
-	print CEE.getInput(resample = 0, count = 100)
+	print(CEE.setOutput(stream = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100))
+	print(CEE.getInput(resample = 0, count = 100))
