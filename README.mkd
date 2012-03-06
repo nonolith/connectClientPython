@@ -1,13 +1,10 @@
 ### Pythonic abstraction layer for Nonolith Connect's RESTful API.
-#### Released under the terms of the GNU GPLv3+
-#### (C) 2012 Nonolith Labs, LLC
-####   Ian Daniher 
 
 This is a simple abstraction layer for the low-speed API provided by Nonolith Connect V1.1.
 
 For API documentation, see [The Nonolith Wiki](http://wiki.nonolithlabs.com/cee/Simple_REST_API_V1/)
 
-This Python module provides a 'CEE' class with methods getOutput, setOutput, and getInput. 
+#### This Python module provides a 'CEE' class with methods getOutput, setOutput, and getInput. 
 
 -----
 
@@ -17,7 +14,8 @@ Return a dictionary containing the output state of a given channel.
 
 ----
 
-	def setOutput(self, channel = "a", stream = "d", value = 0, wave="constant", amplitude = None, frequency = 0, relPhase = 1, phase = 0):
+	def setOutput(self, channel = "a", stream = "d", value = 0, wave="constant", 
+		amplitude = None, frequency = 0, relPhase = 1, phase = 0):
 	
 Set the output state for a given channel.
 
