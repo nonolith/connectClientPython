@@ -6,31 +6,15 @@ CEE = CEE()
 pylab.ion()
 
 channel = 'a'
+periodCount = 10 
 
 sampleTime = CEE.devInfo['sampleTime']
-
 maxFreq = (1/sampleTime)/20
 # maximum frequency = sampling rate / 20
-
-frequencies = numpy.logspace(numpy.log10(10), numpy.log10(maxFreq), 100)
+frequencies = numpy.logspace(numpy.log10(10), numpy.log10(maxFreq), 50)
 
 amplitudes = []
 phases = []
-periodCount = 10 
-
-def findZeroes(values):
-	avg = numpy.mean(values)
-	# find "zero" level
-	zeroes = []
-	for i in range(len(values)):
-		if values[i] < avg < values[i-1] < values[i-2]:
-		# look for crossing of "zero" level
-			zero = i*sampleTime
-			# calculate the time of the zero crossing
-			zeroes.append(zero)
-	zeroes = [zero - zeroes[0] for zero in zeroes]
-	#normalize for temporal offset
-	return zeroes
 
 def findPhases(zeroesA, zeroesB):
 	if len(zeroesA) != len(zeroesB):
@@ -39,9 +23,7 @@ def findPhases(zeroesA, zeroesB):
 	phases = []
 	for i in range(1, len(zeroesA)):
 		phase = ( zeroesA[i] - zeroesB[i] ) / zeroesA[1]
-		phase = (phase*360)%190
-		if phase > 90:
-			phase = 180 - phase
+		phase = (phase*180)
 		phases.append(phase)
 	return phases
 
@@ -51,11 +33,12 @@ def findLocalMaxes(values):
 	split = [values[i:i+chunkwidth] for i in range(0, len(values), chunkwidth)]
 	# split into period
 	localMaxes = map(max, split)
-	# find max per period
-	oneSigma = lambda value: abs(value-numpy.mean(localMaxes)) < numpy.std(localMaxes)
+#	oneSigma = lambda value: abs(value-numpy.mean(localMaxes)) < numpy.std(localMaxes)
 	# sketchy function to determine if value is less than one stddev away from mean
-	return [ value for value in localMaxes if oneSigma(value) ] 
-	# trim values that are way off
+#	cleaned = [[localMax, chunk] for localMax, chunk in zip(localMaxes, split) if oneSigma(localMax)]
+#	localMaxes, split = map(list, zip(*cleaned))
+	localMaxTimes = [(chunk.index(localMax) + split.index(chunk)*chunkwidth)*sampleTime for localMax, chunk in zip(localMaxes, split)]
+	return localMaxTimes[1:-2], localMaxes[1:-2]
 
 for frequency in frequencies:
 	period = 1/frequency
@@ -64,9 +47,10 @@ for frequency in frequencies:
 	sampleCount = int(( period * periodCount ) / sampleTime)
 	# do math to get the equivalent of 'periodCount' in samples
 	v, i = CEE.getInput(channel, 0, sampleCount, setResponse['startSample'])
-	foundLocalMaxes = findLocalMaxes(i)
-	amplitudes.append(numpy.mean(foundLocalMaxes))
-	foundPhases = findPhases(findZeroes(v), findZeroes(i))
+	vMaxTimes, vMaxes = findLocalMaxes(v)
+	iMaxTimes, iMaxes = findLocalMaxes(i)
+	amplitudes.append(numpy.mean(iMaxes))
+	foundPhases = findPhases(vMaxTimes, iMaxTimes)
 	phases.append(numpy.mean(foundPhases))
 
 pylab.subplot(2,1,1)
