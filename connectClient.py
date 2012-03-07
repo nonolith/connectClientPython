@@ -50,9 +50,9 @@ class CEE:
 		self.connection.request("GET", "/rest/v1/devices/%s/%s/output" % (self.devID, channel))
 		return dict(json.loads(self.connection.getresponse().read()))
 
-	def setOutput(self, channel = "a", stream = "d", value = 0, wave="constant", amplitude = None, frequency = 0, relPhase = 1, phase = 0):
+	def setOutput(self, channel = "a", mode = "d", value = 0, wave="constant", amplitude = None, frequency = 0, relPhase = 1, phase = 0):
 		""" Set the output state for a given channel.
-			'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
+			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
 			'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
 			The following parameters only have meaning when 'wave' is not 'constant':
@@ -61,9 +61,9 @@ class CEE:
 				'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
 				'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1)."""
 		if wave == "constant":
-			options = {"mode": stream, "value": value}
+			options = {"mode": mode, "value": value}
 		elif wave in ["square", "triangle", "sine"]:
-			options = {"mode": stream, "value": value, "wave": wave, "amplitude": amplitude, "frequency": frequency, "relPhase": relPhase, "phase": phase}
+			options = {"mode": mode, "value": value, "wave": wave, "amplitude": amplitude, "frequency": frequency, "relPhase": relPhase, "phase": phase}
 		else:
 			raise Exception('Invalid option for "wave"')
 		options = urllib.urlencode(options)
@@ -89,5 +89,5 @@ class CEE:
 if __name__ == "__main__":
 	from numpy import arange
 	CEE = CEE()
-	print(CEE.setOutput(stream = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100))
+	print(CEE.setOutput(mode = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100))
 	print(CEE.getInput(resample = 0, count = 100))

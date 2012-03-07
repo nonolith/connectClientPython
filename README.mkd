@@ -14,12 +14,12 @@ Return a dictionary containing the output state of a given channel.
 
 ----
 
-	def setOutput(self, channel = "a", stream = "d", value = 0, wave="constant", 
+	def setOutput(self, channel = "a", mode = "d", value = 0, wave="constant", 
 		amplitude = None, frequency = 0, relPhase = 1, phase = 0):
 	
 Set the output state for a given channel.
 
-* 'stream' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
+* 'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 * 'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
 * 'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
 
@@ -46,7 +46,7 @@ Each list contains 'count' samples, averaged over 'resample' seconds, separated 
 
 	CEE = CEE()
 	# matches any CEE
-	CEE.setOutput(stream = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100)
+	CEE.setOutput(mode = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100)
 	# sources a 100Hz sinewave centered at 1V with a 2V pk-pk amplitude
 	print(CEE.getInput(resample = 0, count = 100))
 	# prints 100 un-averaged samples
