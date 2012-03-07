@@ -32,13 +32,15 @@ The following parameters only have meaning when 'wave' is not 'constant':
 
 -----
 
-	def getInput(self, channel = "a", resample = .01, count = 1):
+	def getInput(self, channel = "a", resample = .01, count = 1, start = None):
 
 Returns a pair of list indicating the measured state of the specified channel.
 
 The first list is measured voltage, the second list is measured current.
 
-Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds."""
+Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds.
+
+'start' is the sample index from which to start measuring.
 
 -----
 
