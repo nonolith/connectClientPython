@@ -33,9 +33,13 @@ class CEE:
 		self.connection.request("GET", "/rest/v1/devices/%s" % self.devID)
 		self.devInfo = dict(json.loads(self.connection.getresponse().read()))
 
+		headers = {"Content-Type": "application/x-www-form-urlencoded"}
+		options = {"sampleTime":"0.000025"}
+		options = urllib.urlencode(options)
+		self.connection.request("POST", "/rest/v1/devices/%s/configuration" % self.devID, options, headers)
+		self.connection.getresponse()
 		options = {"capture":"on"}
 		options = urllib.urlencode(options)
-		headers = {"Content-Type": "application/x-www-form-urlencoded"}
 		self.connection.request("POST", "/rest/v1/devices/%s" % self.devID, options, headers)
 		self.connection.getresponse()
 
