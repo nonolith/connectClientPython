@@ -71,11 +71,14 @@ class CEE:
 		self.connection.request("POST", "/rest/v1/devices/%s/%s/output" % (self.devID, channel),  options, headers)
 		return json.loads(self.connection.getresponse().read())
 
-	def getInput(self, channel = "a", resample = .01, count = 1):
+	def getInput(self, channel = "a", resample = .01, count = 1, start = None):
 		""" Returns a pair of list indicating the measured state of the specified channel.
 			The first list is measured voltage, the second list is measured current.
-			Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds."""
+			Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds.
+			'start' is the sample index from which to start measuring."""
 		options = {"resample":resample, "count":count, "header":0}
+		if start != None:
+			options['start'] = start
 		options = "?" + urllib.urlencode(options)
 		self.connection.request("GET", "/rest/v1/devices/%s/%s/input" % (self.devID, channel) + options)
 		values = [[float(item) for item in item.split(',')] 
