@@ -30,6 +30,9 @@ class CEE:
 				except:
 					raise Exception('Device index invalid.')
 
+		self.connection.request("GET", "/rest/v1/devices/%s" % self.devID)
+		self.devInfo = dict(json.loads(self.connection.getresponse().read()))
+
 		options = {"capture":"on"}
 		options = urllib.urlencode(options)
 		headers = {"Content-Type": "application/x-www-form-urlencoded"}
