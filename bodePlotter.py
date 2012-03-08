@@ -38,7 +38,7 @@ def findPhases(maxesA, maxesB):
 
 	print '\n'
 
-	for i in range(1, len(maxesA)):
+	for i in range(len(maxesA)):
 		phase = ( maxesB[i] - maxesA[i] ) / maxesA[1] * 360.0
 		# calculate percent difference between spacing of two events
 		# normalize to degrees
@@ -60,12 +60,11 @@ def findLocalMaxes(values, a):
 
 for frequency in frequencies:
 	period = 1/frequency
-	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, .1, 0, 0)
 	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, frequency, 1, 0)
 	# source sine wave with full-scale voltage range at target frequency
 	sampleCount = int( ( period * periodCount ) / sampleTime)
 	# do math to get the equivalent of 'periodCount' in samples
-	v, i = CEE.getInput('a', 0, sampleCount, setResponse['startSample'])
+	v = CEE.getInput('a', 0, sampleCount, setResponse['startSample'])[0]
 	i = CEE.getInput('b', 0, sampleCount, setResponse['startSample'])[0]
 	# get samples from CEE
 	vMaxes, vMaxTimes = findLocalMaxes(v, True)
@@ -78,10 +77,10 @@ for frequency in frequencies:
 
 pylab.figure()
 pylab.subplot(2,1,1)
-pylab.semilogx(frequencies, amplitudes, '*')
+pylab.semilogx(frequencies, amplitudes, '.')
 #pylab.ylim(0,5)
 pylab.ylabel("mean peak current")
 pylab.subplot(2,1,2)
-pylab.semilogx(frequencies, phases, '*')
+pylab.semilogx(frequencies, phases, '.')
 pylab.ylabel("phase shift in degrees")
 pylab.xlabel("frequency")
