@@ -22,25 +22,19 @@ def findPhases(maxesA, maxesB):
 	phases = []
 	maxesA = [ maxA - maxesA[0] for maxA in maxesA ]
 	maxesB = [ maxB - maxesA[0] for maxB in maxesB ]
+	# normalize times against the start time of array A
+
 	print maxesA
 	print maxesB
+
 	if (maxesA[1]-maxesB[1]) < (maxesB[2] - maxesA[2]):
 		maxesA = maxesA[1:-1]
 		maxesB = maxesB[0:-2]
-	else:
+	elif (maxesA[1]-maxesB[1]) > (maxesB[2] - maxesA[2]):
 		maxesB = maxesB[1:-1]
 		maxesA = maxesA[0:-2]
-	if maxesA[0] < maxesB[0]:
-		maxTemp = maxesB
-		maxesB = maxesA
-		maxesA = maxTemp
-	elif maxesA[0] < maxesB[0]:
-		pass
-	else:
-		if maxesA[1] < maxesB[1]:
-			maxTemp = maxesB
-			maxesB = maxesA
-			maxesA = maxTemp
+	# shift arrays to match eachother
+
 	print '\n'
 
 	for i in range(1, len(maxesA)):
