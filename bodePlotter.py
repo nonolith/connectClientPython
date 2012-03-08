@@ -1,4 +1,4 @@
-from numpy import logspace, log10, mean, linspace
+from numpy import logspace, log10, mean, linspace, ceil
 from connectClient import CEE
 import pylab
 import time
@@ -12,46 +12,39 @@ sampleTime = CEE.devInfo['sampleTime']
 maxFreq = (1/sampleTime)/20
 # maximum frequency = sampling rate / 20
 
-frequencies = logspace(log10(10), log10(maxFreq), 10)
+frequencies = list(logspace(log10(10), log10(maxFreq), 40))
 #log-spaced array of frequencies
 amplitudes = []
 phases = []
 
 def findPhases(maxesA, maxesB):
 	phases = []
-
-	maxesA = [ maxA - maxesA[0] for maxA in maxesA ]
-	maxesB = [ maxB - maxesA[0] for maxB in maxesB ]
-	# normalize times against the start time of array A
-
-	print period 
-	print maxesA
-	print maxesB
-
-	if (maxesA[1]-maxesB[1]) < (maxesB[2] - maxesA[2]):
-		maxesA = maxesA[1:-1]
-		maxesB = maxesB[0:-2]
-	elif (maxesA[1]-maxesB[1]) > (maxesB[2] - maxesA[2]):
-		maxesB = maxesB[1:-1]
-		maxesA = maxesA[0:-2]
-	# shift arrays to match eachother
-
-	print '\n'
-
+	maxesA = maxesA[1::]
+	maxesB = maxesB[1::]
 	for i in range(len(maxesA)):
-		phase = ( maxesB[i] - maxesA[i] ) / maxesA[1] * 360.0
-		# calculate percent difference between spacing of two events
-		# normalize to degrees
+		phase = ( maxesA[i] - maxesB[i] ) * frequency * 360.0
+		if phase > 180:
+			phase = 180 - phase
+		if phase < -180:
+			phase = 360 + phase
 		phases.append(phase)
-	return phases
+	print max(phases), phases
+	return phases 
 
 def findLocalMaxes(values, a):
+	lenFreqs = len(frequencies)
+	index = frequencies.index(frequency)
+	pylab.subplot(lenFreqs/2, 2, index+1)
 	chunkwidth = len(values)/periodCount
 	# determine samples per period
 	split = [values[i:i+chunkwidth] for i in range(0, len(values), chunkwidth)]
 	# split into periods
 	localMaxes = map(max, split)
 	# find local maximums
+	pylab.plot(values)
+	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth) for localMax, chunk in zip(localMaxes, split) ]
+	[pylab.axvline(x=point, color='r') for point in [i+chunkwidth for i in range(1, len(values), chunkwidth)]]
+	pylab.plot(localMaxTimes, localMaxes, 'ro')
 	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth) * sampleTime
 		for localMax, chunk in zip(localMaxes, split) ]
 	# find indexes of local maximums
@@ -60,12 +53,14 @@ def findLocalMaxes(values, a):
 
 for frequency in frequencies:
 	period = 1/frequency
-	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, frequency, 1, 0)
+	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, frequency, 0, 0)
 	# source sine wave with full-scale voltage range at target frequency
-	sampleCount = int( ( period * periodCount ) / sampleTime)
+	sampleCount = ( period * periodCount ) / sampleTime
 	# do math to get the equivalent of 'periodCount' in samples
-	v = CEE.getInput('a', 0, sampleCount, setResponse['startSample'])[0]
-	i = CEE.getInput('b', 0, sampleCount, setResponse['startSample'])[0]
+	startSample = ceil(setResponse['startSample']/period)*period
+#	print setResponse['startSample'], startSample
+	v = CEE.getInput('a', 0, int(sampleCount), int(startSample))[0]
+	i = CEE.getInput('b', 0, int(sampleCount), int(startSample))[0]
 	# get samples from CEE
 	vMaxes, vMaxTimes = findLocalMaxes(v, True)
 	iMaxes, iMaxTimes = findLocalMaxes(i, False)
