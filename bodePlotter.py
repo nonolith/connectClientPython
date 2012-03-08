@@ -10,31 +10,42 @@ channel = 'a'
 periodCount = 10 
 
 sampleTime = CEE.devInfo['sampleTime']
-maxFreq = (1/sampleTime)/200
+maxFreq = (1/sampleTime)/20
 # maximum frequency = sampling rate / 20
 
-frequencies = logspace(log10(10), log10(maxFreq), 40)
+frequencies = logspace(log10(10), log10(maxFreq), 20)
 #log-spaced array of frequencies
 amplitudes = []
 phases = []
 
 def findPhases(maxesA, maxesB):
 	phases = []
-	print maxesA
-	print maxesB
 	maxesA = [ maxA - maxesA[0] for maxA in maxesA ]
 	maxesB = [ maxB - maxesA[0] for maxB in maxesB ]
 	print maxesA
 	print maxesB
-	maxesA = maxesA[1:-1]
-	maxesB = maxesB[0:-2]
-	print maxesA
-	print maxesB
-	print ''
+	if (maxesA[1]-maxesB[1]) < (maxesB[2] - maxesA[2]):
+		maxesA = maxesA[1:-1]
+		maxesB = maxesB[0:-2]
+	else:
+		maxesB = maxesB[1:-1]
+		maxesA = maxesA[0:-2]
+	if maxesA[0] < maxesB[0]:
+		maxTemp = maxesB
+		maxesB = maxesA
+		maxesA = maxTemp
+	elif maxesA[0] < maxesB[0]:
+		pass
+	else:
+		if maxesA[1] < maxesB[1]:
+			maxTemp = maxesB
+			maxesB = maxesA
+			maxesA = maxTemp
+	print '\n'
+
 	for i in range(1, len(maxesA)):
-		phase = ( maxesB[i] - maxesA[i] ) / float(maxesA[1])
+		phase = ( maxesB[i] - maxesA[i] ) / float(maxesA[1]-maxesA[0]) * 180.0
 		# calculate percent difference between spacing of two events
-		phase = phase * 180
 		# normalize to degrees
 		phases.append(phase)
 	return phases
@@ -43,14 +54,11 @@ def findLocalMaxes(values, a):
 	chunkwidth = len(values)/periodCount
 	# determine samples per period
 	split = [values[i:i+chunkwidth] for i in range(0, len(values), chunkwidth)]
-#	[pylab.axvline(x=point, color='r') for point in [i+chunkwidth for i in range(1, len(values), chunkwidth)]]
 	# split into periods
 	localMaxes = map(max, split)
 	# find local maximums
 	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth)
 		for localMax, chunk in zip(localMaxes, split) ]
-#	pylab.plot(values)
-#	pylab.plot(localMaxTimes, localMaxes, 'ro')
 	# find indexes of local maximums
 	return localMaxes, localMaxTimes
 	# trim the garbage datapoints and return the information
@@ -74,10 +82,10 @@ for frequency in frequencies:
 
 pylab.figure()
 pylab.subplot(2,1,1)
-pylab.loglog(frequencies, amplitudes, '.')
+pylab.loglog(frequencies, amplitudes, '*')
 #pylab.ylim(0,5)
 pylab.ylabel("mean peak current")
 pylab.subplot(2,1,2)
-pylab.semilogx(frequencies, phases, '.')
+pylab.semilogx(frequencies, phases, '*')
 pylab.ylabel("phase shift in degrees")
 pylab.xlabel("frequency")
