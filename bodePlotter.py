@@ -6,7 +6,6 @@ import time
 CEE = CEE()
 pylab.ion()
 
-channel = 'a'
 periodCount = 10 
 
 sampleTime = CEE.devInfo['sampleTime']
@@ -26,7 +25,8 @@ def findPhases(maxesA, maxesB):
 	# normalize times against the start time of array A
 
 	print period 
-	print maxesA, maxesB
+	print maxesA
+	print maxesB
 
 	if (maxesA[1]-maxesB[1]) < (maxesB[2] - maxesA[2]):
 		maxesA = maxesA[1:-1]
@@ -60,12 +60,12 @@ def findLocalMaxes(values, a):
 
 for frequency in frequencies:
 	period = 1/frequency
-	setResponse = CEE.setOutput(channel, 'v', 2.5, 'sine', 2.5, .1, 0, 0)
-	setResponse = CEE.setOutput(channel, 'v', 2.5, 'sine', 2.5, frequency, 1, 0)
+	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, .1, 0, 0)
+	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, frequency, 1, 0)
 	# source sine wave with full-scale voltage range at target frequency
 	sampleCount = int( ( period * periodCount ) / sampleTime)
 	# do math to get the equivalent of 'periodCount' in samples
-	v, i = CEE.getInput(channel, 0, sampleCount, setResponse['startSample'])
+	v, i = CEE.getInput('a', 0, sampleCount, setResponse['startSample'])
 	i = CEE.getInput('b', 0, sampleCount, setResponse['startSample'])[0]
 	# get samples from CEE
 	vMaxes, vMaxTimes = findLocalMaxes(v, True)
