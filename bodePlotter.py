@@ -1,10 +1,9 @@
+# -*- coding: utf-8 -*-
 from numpy import logspace, log10, mean
 from connectClient import CEE
 import pylab
-import time
 
 CEE = CEE()
-pylab.ion()
 
 periodCount = 10 
 
@@ -63,12 +62,13 @@ for frequency in frequencies:
 
 pylab.figure()
 pylab.subplot(2,1,1)
-pylab.semilogx(frequencies, amplitudes, '.')
+pylab.loglog(frequencies, amplitudes, '.')
 pylab.xlim(minFreq,maxFreq)
 pylab.ylim(0,5)
-pylab.ylabel("mean peak voltage")
+pylab.ylabel("Amplitude(V)")
 pylab.subplot(2,1,2)
 pylab.semilogx(frequencies, phases, '.')
 pylab.xlim(minFreq,maxFreq)
-pylab.ylabel("phase shift in degrees")
+pylab.ylabel("Phase Shift(deg)")
 pylab.xlabel("frequency")
+pylab.show()
