@@ -9,10 +9,11 @@ pylab.ion()
 periodCount = 10 
 
 sampleTime = CEE.devInfo['sampleTime']
+minFreq = 10
 maxFreq = (1/sampleTime)/20
 # maximum frequency = sampling rate / 20
 
-frequencies = list(logspace(log10(10), log10(maxFreq), 40))
+frequencies = logspace(log10(minFreq), log10(maxFreq), 40)
 #log-spaced array of frequencies
 amplitudes = []
 phases = []
@@ -28,23 +29,15 @@ def findPhases(maxesA, maxesB):
 		if phase < -180:
 			phase = 360 + phase
 		phases.append(phase)
-	print max(phases), phases
 	return phases 
 
 def findLocalMaxes(values, a):
-	lenFreqs = len(frequencies)
-	index = frequencies.index(frequency)
-	pylab.subplot(lenFreqs/2, 2, index+1)
 	chunkwidth = len(values)/periodCount
 	# determine samples per period
 	split = [values[i:i+chunkwidth] for i in range(0, len(values), chunkwidth)]
 	# split into periods
 	localMaxes = map(max, split)
 	# find local maximums
-	pylab.plot(values)
-	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth) for localMax, chunk in zip(localMaxes, split) ]
-	[pylab.axvline(x=point, color='r') for point in [i+chunkwidth for i in range(1, len(values), chunkwidth)]]
-	pylab.plot(localMaxTimes, localMaxes, 'ro')
 	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth) * sampleTime
 		for localMax, chunk in zip(localMaxes, split) ]
 	# find indexes of local maximums
@@ -58,7 +51,6 @@ for frequency in frequencies:
 	sampleCount = ( period * periodCount ) / sampleTime
 	# do math to get the equivalent of 'periodCount' in samples
 	startSample = ceil(setResponse['startSample']/period)*period
-#	print setResponse['startSample'], startSample
 	v = CEE.getInput('a', 0, int(sampleCount), int(startSample))[0]
 	i = CEE.getInput('b', 0, int(sampleCount), int(startSample))[0]
 	# get samples from CEE
@@ -73,9 +65,11 @@ for frequency in frequencies:
 pylab.figure()
 pylab.subplot(2,1,1)
 pylab.semilogx(frequencies, amplitudes, '.')
-#pylab.ylim(0,5)
-pylab.ylabel("mean peak current")
+pylab.xlim(minFreq,maxFreq)
+pylab.ylim(0,5)
+pylab.ylabel("mean peak voltage")
 pylab.subplot(2,1,2)
 pylab.semilogx(frequencies, phases, '.')
+pylab.xlim(minFreq,maxFreq)
 pylab.ylabel("phase shift in degrees")
 pylab.xlabel("frequency")
