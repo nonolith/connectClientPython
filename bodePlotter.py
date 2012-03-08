@@ -13,19 +13,20 @@ sampleTime = CEE.devInfo['sampleTime']
 maxFreq = (1/sampleTime)/20
 # maximum frequency = sampling rate / 20
 
-frequencies = logspace(log10(10), log10(maxFreq), 20)
+frequencies = logspace(log10(10), log10(maxFreq), 10)
 #log-spaced array of frequencies
 amplitudes = []
 phases = []
 
 def findPhases(maxesA, maxesB):
 	phases = []
+
 	maxesA = [ maxA - maxesA[0] for maxA in maxesA ]
 	maxesB = [ maxB - maxesA[0] for maxB in maxesB ]
 	# normalize times against the start time of array A
 
-	print maxesA
-	print maxesB
+	print period 
+	print maxesA, maxesB
 
 	if (maxesA[1]-maxesB[1]) < (maxesB[2] - maxesA[2]):
 		maxesA = maxesA[1:-1]
@@ -38,7 +39,7 @@ def findPhases(maxesA, maxesB):
 	print '\n'
 
 	for i in range(1, len(maxesA)):
-		phase = ( maxesB[i] - maxesA[i] ) / float(maxesA[1]-maxesA[0]) * 180.0
+		phase = ( maxesB[i] - maxesA[i] ) / maxesA[1] * 360.0
 		# calculate percent difference between spacing of two events
 		# normalize to degrees
 		phases.append(phase)
@@ -51,17 +52,18 @@ def findLocalMaxes(values, a):
 	# split into periods
 	localMaxes = map(max, split)
 	# find local maximums
-	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth)
+	localMaxTimes = [ (chunk.index(localMax) + split.index(chunk)*chunkwidth) * sampleTime
 		for localMax, chunk in zip(localMaxes, split) ]
 	# find indexes of local maximums
 	return localMaxes, localMaxTimes
 	# trim the garbage datapoints and return the information
 
 for frequency in frequencies:
+	period = 1/frequency
 	setResponse = CEE.setOutput(channel, 'v', 2.5, 'sine', 2.5, .1, 0, 0)
 	setResponse = CEE.setOutput(channel, 'v', 2.5, 'sine', 2.5, frequency, 1, 0)
 	# source sine wave with full-scale voltage range at target frequency
-	sampleCount = int( ( (1/frequency) * periodCount ) / sampleTime)
+	sampleCount = int( ( period * periodCount ) / sampleTime)
 	# do math to get the equivalent of 'periodCount' in samples
 	v, i = CEE.getInput(channel, 0, sampleCount, setResponse['startSample'])
 	i = CEE.getInput('b', 0, sampleCount, setResponse['startSample'])[0]
@@ -76,7 +78,7 @@ for frequency in frequencies:
 
 pylab.figure()
 pylab.subplot(2,1,1)
-pylab.loglog(frequencies, amplitudes, '*')
+pylab.semilogx(frequencies, amplitudes, '*')
 #pylab.ylim(0,5)
 pylab.ylabel("mean peak current")
 pylab.subplot(2,1,2)
