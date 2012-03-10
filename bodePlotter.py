@@ -9,8 +9,8 @@ periodCount = 10
 
 sampleTime = CEE.devInfo['sampleTime']
 minFreq = 10
-maxFreq = (1/sampleTime)/20
-# maximum frequency = sampling rate / 20
+maxFreq = (1/sampleTime)/10
+# maximum frequency = sampling rate / 10
 
 frequencies = logspace(log10(minFreq), log10(maxFreq), 100)
 # log-spaced array of frequencies
@@ -45,12 +45,11 @@ def findLocalMaxes(values):
 
 for frequency in frequencies:
 	period = 1/frequency
-	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, frequency, 0, 0)
+	setResponse = CEE.setOutput('a', 'v', 2.5, 'sine', 2.5, frequency, 1, 0)
 	# source sine wave with full-scale voltage range at target frequency
 	sampleCount = ( period * periodCount ) / sampleTime
 	# do math to get the equivalent of 'periodCount' in samples
-	v = CEE.getInput('a', 0, int(sampleCount), setResponse['startSample'])[0]
-	i = CEE.getInput('b', 0, int(sampleCount), setResponse['startSample'])[0]
+	v, i = CEE.getInput('a', 0, int(sampleCount), setResponse['startSample'])
 	# get samples from CEE
 	vMaxes, vMaxTimes = findLocalMaxes(v)
 	iMaxes, iMaxTimes = findLocalMaxes(i)
@@ -60,11 +59,11 @@ for frequency in frequencies:
 	phases.append(mean(findPhases(vMaxTimes, iMaxTimes)))
 	# calculate and record phases from v/i maximums' timestamps 
 
+
 pylab.figure()
 pylab.subplot(2,1,1)
 pylab.loglog(frequencies, amplitudes, '.')
 pylab.xlim(minFreq,maxFreq)
-pylab.ylim(0,5)
 pylab.ylabel("Amplitude(V)")
 pylab.subplot(2,1,2)
 pylab.semilogx(frequencies, phases, '.')
