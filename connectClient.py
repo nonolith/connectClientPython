@@ -91,7 +91,11 @@ class CEE:
 		values = [[float(item) for item in item.split(',')] 
 			for item in self.connection.getresponse().read().split('\n') 
 			if item != '']
-		return map(list, zip(*values))
+		values = map(list, zip(*values))
+		if count == 1:
+			return [value[0] for value in values]
+		else:
+			return values
 
 if __name__ == "__main__":
 	from numpy import arange
