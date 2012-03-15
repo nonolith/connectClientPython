@@ -113,9 +113,3 @@ class CEE:
 			return [value[0] for value in values]
 		else:
 			return values
-
-if __name__ == "__main__":
-	from numpy import arange
-	CEE = CEE()
-	print(CEE.setOutput(mode = "v", wave = "sine", amplitude = 1, value = 1, frequency = 100))
-	print(CEE.getInput(resample = 0, count = 100))
