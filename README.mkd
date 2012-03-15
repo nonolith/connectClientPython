@@ -4,7 +4,7 @@ This is a simple abstraction layer for the low-speed API provided by Nonolith Co
 
 For API documentation, see [The Nonolith Wiki](http://wiki.nonolithlabs.com/cee/Simple_REST_API_V1/)
 
-#### This Python module provides a 'CEE' class with methods getOutput, setOutput, and getInput. 
+#### This Python module provides a 'CEE' class with methods getOutput, setOutput, getInput, and setInput. 
 
 -----
 
@@ -43,6 +43,10 @@ Each list contains 'count' samples, averaged over 'resample' seconds, separated 
 'start' is the sample index from which to start measuring.
 
 -----
+
+	def setInput(self, channel = "a", vGain = 1, iGain = 1):
+
+Set the input gain for both streams of a given channel.
 
 ### Usage examples:
 
