@@ -14,27 +14,22 @@ class CEE:
 		self.connection = httplib.HTTPConnection("localhost:9003")
 		atexit.register(self._onClose)
 
+		self.connection.request("GET", "/rest/v1/devices/")
+		if json.loads(self.connection.getresponse().read()) == {}:
+			raise Exception('No devices found.')
+
 		if devID == "com.nonolithlabs.cee*":
 			self.devID = devID
-
-		elif devID:
+		else:
 			self.connection.request("GET", "/rest/v1/devices/")
 			response = json.loads(self.connection.getresponse().read())
 			if response.keys()[0] == devID:
 				self.devID = devID
-			elif response.keys()[0] == '':
-				raise Exception('No devices found.')
-			elif type(devID) == int:
-				try:
-					self.devID = response.keys()[devID]
-				except:
-					raise Exception('Device index invalid.')
-
-		self.connection.request("GET", "/rest/v1/devices/%s" % self.devID)
-		self.devInfo = dict(json.loads(self.connection.getresponse().read()))
+			else:
+				raise Exception('Invalid devID.')
 
 		headers = {"Content-Type": "application/x-www-form-urlencoded"}
-		options = {"sampleTime":"0.000025"}
+		options = {"sampleTime":0.000025, "current":200, "samples":48000}
 		options = urllib.urlencode(options)
 		self.connection.request("POST", "/rest/v1/devices/%s/configuration" % self.devID, options, headers)
 		self.connection.getresponse()
@@ -42,6 +37,8 @@ class CEE:
 		options = urllib.urlencode(options)
 		self.connection.request("POST", "/rest/v1/devices/%s" % self.devID, options, headers)
 		self.connection.getresponse()
+		self.connection.request("GET", "/rest/v1/devices/%s" % self.devID)
+		self.devInfo = json.loads(self.connection.getresponse().read())
 
 	def _onClose(self):
 		""" Stop capturing and close the HTTP connection."""
@@ -76,6 +73,26 @@ class CEE:
 		options = urllib.urlencode(options)
 		headers = {"Content-Type": "application/x-www-form-urlencoded"}
 		self.connection.request("POST", "/rest/v1/devices/%s/%s/output" % (self.devID, channel),  options, headers)
+		return json.loads(self.connection.getresponse().read())
+
+	def setInput(self, channel = "a", vGain = 1, iGain = 1):
+		""" Set the input gain for both streams of a given channel."""
+		Gains = [0.5,1,2,4,8,16,32,64]
+		if iGain == "0.5":
+			iGain = float(iGain)
+		elif iGain == 0.5:
+			pass
+		else:
+			iGain = int(iGain)
+		vGain = int(vGain)
+		if vGain not in Gains[1::]:
+			raise Exception("Invalid voltage gain.")
+		if iGain not in Gains[0:-1]:
+			raise Exception("Invalid current gain.")
+		options = {"gain_v":vGain, "gain_i":iGain}
+		options = urllib.urlencode(options)
+		headers = {"Content-Type": "application/x-www-form-urlencoded"}
+		self.connection.request("POST", "/rest/v1/devices/%s/%s/input" % (self.devID, channel),  options, headers)
 		return json.loads(self.connection.getresponse().read())
 
 	def getInput(self, channel = "a", resample = .01, count = 1, start = None):
