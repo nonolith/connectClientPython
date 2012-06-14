@@ -85,14 +85,21 @@ class CEE:
 	def setOutputArbitrary(self, channel = "a", mode = "d", values = [{"t":0, "v":0}]):
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
-			'values' takes a list of time/value pairs like: [{"t":0, "v":0},{"t":10000, "v":5},{"t":20000, "v":3}]"""
+			'values' takes a list of sampleCount/value pairs like: [{"t":0, "v":0},{"t":10000, "v":5},{"t":20000, "v":3}]"""
 		options = {"mode": 1, "values": values, "offset":-1, "source": "arb"}
 		print options
 		options = json.dumps(options)
 		headers = {"Content-Type": "text/json"}
 		self.connection.request("POST", "/rest/v1/devices/%s/%s/output" % (self.devID, channel),  options, headers)
 		return json.loads(self.connection.getresponse().read())
-
+	def setOutputArbitraryAlt(channel="a", mode="v", times=[0], values=[0]):
+		"""See the documentation for setOutputArbitrary.
+			This function is simply a convenience wrapper facilitating the creation of the list of dictionaries required.
+			'times' is a list of times in seconds.
+			'values' is a list of values in SI units, either volts or amps."""
+		values = [value * 1000.0 if mode == "i" else value for value in values]
+		output = [{"t":times[i]/CEE.devInfo['sampleTime'], "v":values[i]} for i in range(len(times))]
+		return CEE.setOutputArbitrary(channel, mode, output)
 	def setInput(self, channel = "a", vGain = 1, iGain = 1):
 		""" Set the input gain for both streams of a given channel."""
 		Gains = [0.5,1,2,4,8,16,32,64]
