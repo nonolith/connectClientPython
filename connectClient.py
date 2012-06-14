@@ -58,14 +58,17 @@ class CEE:
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
-			'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
-			The following parameters only have meaning when 'wave' is not 'constant':
+			'wave' can be either 'constant,' 'arb,' 'triangle,' 'square,' or 'sine.'
+			When 'wave' is 'arb', 'value' takes a list of time/value pairs like: [{"t":0, "v":0},{"t":10000, "v":5},{"t":20000, "v":3}]
+			The following parameters only have meaning when 'wave' is not 'constant' or 'arb':
 				'amplitude' determines the maximum offset from center.
 				'frequency' is the cycles per second.
 				'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
 				'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1)."""
 		if wave == "constant":
 			options = {"mode": mode, "value": value}
+		elif wave == "arb":
+			options = {"mode": mode, "values": values, "offset":-1}
 		elif wave in ["square", "triangle", "sine"]:
 			options = {"mode": mode, "value": value, "wave": wave, "amplitude": amplitude, "frequency": frequency, "relPhase": relPhase, "phase": phase}
 		else:
