@@ -4,7 +4,7 @@ This is a simple abstraction layer for the low-speed API provided by Nonolith Co
 
 For API documentation, see [The Nonolith Wiki](http://wiki.nonolithlabs.com/cee/Simple_REST_API_V1/)
 
-#### This Python module provides a 'CEE' class with methods getOutput, setOutput, getInput, and setInput. 
+#### This Python module provides a 'CEE' class with methods getOutput, setOutputConstant, setOutputRepeating, setOutputArbitrary, getInput, and setInput. 
 
 -----
 
@@ -14,21 +14,36 @@ Return a dictionary containing the output state of a given channel.
 
 ----
 
-	def setOutput(self, channel = "a", mode = "d", value = 0, wave="constant", 
-		amplitude = None, frequency = 0, relPhase = 1, phase = 0):
-	
+	def setOutputConstant(self, channel = "a", mode = "d", value = 0):
+
+Set the output state for a given channel.
+
+ * 'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
+ * 'value' is a number either in volts or milliamps specifying the target value.
+
+-----
+
+	def setOutputRepeating(self, channel = "a", mode = "d", value = 0, wave="square", amplitude = 0, frequency = 0, relPhase = 1, phase = 0):
+
 Set the output state for a given channel.
 
 * 'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
-* 'value' is an number either in volts or milliamps determining the target value in DC mode or the center value in AC mode.
-* 'wave' can be either 'constant,' 'triangle,' 'square,' or 'sine.'
-
-The following parameters only have meaning when 'wave' is not 'constant':
-
+* 'value' is a number either in volts or milliamps specifying the center value in AC mode.
+* 'wave' can be either triangle,' 'square,' or 'sine'.
 * 'amplitude' determines the maximum offset from center.
 * 'frequency' is the cycles per second.
 * 'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
 * 'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1).
+
+-----
+
+	def setOutputArbitrary(self, channel = "a", mode = "d", times = [0], values = [0]): 
+
+Set the output state for a given channel.
+
+* 'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
+* 'times' is a list of times in seconds.
+* 'values' is a list of values in SI units, either volts or amps.
 
 -----
 
