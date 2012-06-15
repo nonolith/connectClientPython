@@ -121,7 +121,7 @@ class CEE:
 		return json.loads(self.connection.getresponse().read())
 
 	def getInput(self, channel = "a", resample = .01, count = 1, start = None):
-		""" Returns a pair of list indicating the measured state of the specified channel.
+		""" Returns a pair of lists indicating the measured state of the specified channel.
 			The first list is measured voltage, the second list is measured current.
 			Each list contains 'count' samples, averaged over 'resample' seconds, separated by 'resample' seconds.
 			'start' is the sample index from which to start measuring."""
