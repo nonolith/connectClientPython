@@ -88,7 +88,7 @@ class CEE:
 			'times' is a list of times in seconds.
 			'values' is a list of values in SI units, either volts or amps."""
 		values = [value * 1000.0 if mode == "i" else value for value in values]
-		output = [{"t":times[i]/CEE.devInfo['sampleTime'], "v":values[i]} for i in range(len(times))]
+		output = [{"t":times[i]/self.devInfo['sampleTime'], "v":values[i]} for i in range(len(times))]
 		options = {"mode": {"d":0,"v":1,"i":2}[mode], "values": output, "offset":-1, "source": "arb"}
 		options = json.dumps(options)
 		headers = {"Content-Type": "text/json"}
