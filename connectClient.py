@@ -40,7 +40,7 @@ class CEE:
 		"""
 		if not path.startswith('/'): path = self.deviceResource + path
 
-		print method, path, kwds
+		#print method, path, kwds
 
 		if method == 'GET':
 			self.connection.request(method, path)
@@ -134,17 +134,19 @@ class CEE:
 	# deprecated alias
 	setOutputRepeating = setOutputWave
 
-	def setOutputArbitrary(self, channel = "a", mode = "d", times = None, values = [], repeat=1, startTime=-1): 
+	def setOutputArbitrary(self, channel = "a", mode = "d", times = [], values = None, repeat=1, startTime=-1): 
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
-			'times' is a list of times in seconds.
-			'values' is a list of values, either in V or mA depending on mode.
-			If 'times' is None, 'values' is a list of (time, value) tuples.
+			'times' is a list of times in seconds, or a list of (time, value) tuples if 'values' is None.
+			'values' is a list of values, either in V or mA depending on mode, or None if the values are included in the 'times' list.
 			'repeat' is the number of times to repeat the waveform. -1 for infinite
 			'startTime' is the phase offset in sample units"""
 
-		if times is not None:
+		if values is not None:
 			values = zip(times, values)
+		else:
+			# because times comes first, so it can be passed positionally
+			values = times
 
 		values.sort()
 
