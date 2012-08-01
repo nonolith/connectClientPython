@@ -1,6 +1,6 @@
 #"!/usr/bin/python
 # Pythonic abstraction layer for Nonolith Connect's RESTful API.
-# Released under the terms of the GNU GPLv3+
+# Released under the terms of the BSD license
 # (C) 2012 Nonolith Labs, LLC
 # Authors:
 #   Ian Daniher
