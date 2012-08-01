@@ -3,7 +3,8 @@
 # Released under the terms of the GNU GPLv3+
 # (C) 2012 Nonolith Labs, LLC
 # Authors:
-#   Ian Daniher 
+#   Ian Daniher
+#   Kevin Mehall
 
 import httplib, atexit, urllib, json
 
@@ -39,7 +40,7 @@ class CEE:
 		"""
 		if not path.startswith('/'): path = self.deviceResource + path
 
-		#print method, path, kwds
+		print method, path, kwds
 
 		if method == 'GET':
 			self.connection.request(method, path)
@@ -47,6 +48,8 @@ class CEE:
 			headers = {"Content-Type": "application/x-www-form-urlencoded"}
 			body = urllib.urlencode(kwds)
 			self.connection.request(method, path, body, headers)
+		else:
+			raise ValueError('Unknown content encoding: '+encoding)
 
 		r = self.connection.getresponse().read()
 		if jsonReply:
@@ -97,20 +100,15 @@ class CEE:
 
 	def getOutput(self, channel = "a"):
 		""" Return a dictionary containing the output state of a given channel."""
-		self.connection.request("GET", "/rest/v1/devices/%s/%s/output" % (self.devID, channel))
-		return dict(json.loads(self.connection.getresponse().read()))
+		return self.request('{0}/output'.format(channel))
 
 	def setOutputConstant(self, channel = "a", mode = "d", value = 0):
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'value' is a number either in volts or milliamps specifying the target value."""
-		options = {"mode": mode, "value": value}
-		options = urllib.urlencode(options)
-		headers = {"Content-Type": "application/x-www-form-urlencoded"}
-		self.connection.request("POST", "/rest/v1/devices/%s/%s/output" % (self.devID, channel),  options, headers)
-		return json.loads(self.connection.getresponse().read())
+		return self.request('{0}/output'.format(channel), 'POST', mode=mode, value=value)
 
-	def setOutputRepeating(self, channel = "a", mode = "d", value = 0, wave="square", amplitude = 0, frequency = 0, relPhase = 1, phase = 0):
+	def setOutputWave(self, channel = "a", mode = "d", value = 0, wave="square", amplitude = 0, frequency = 0, relPhase = 1, phase = 0):
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'value' is a number either in volts or milliamps specifying the center value in AC mode.
@@ -119,27 +117,61 @@ class CEE:
 			'frequency' is the cycles per second.
 			'relPhase' determines whether the starting value is based off of the previous output setting to provide seamless change in frequency.
 			'phase' is the phase offset in seconds from the beginning of the stream (relPhase=0) or from the previous source (relPhase=1)."""
-		if wave in ["square", "triangle", "sine"]:
-			options = {"mode": mode, "value": value, "wave": wave, "amplitude": amplitude, "frequency": frequency, "relPhase": relPhase, "phase": phase}
-		else:
-			raise Exception('Invalid option for "wave"')
-		options = urllib.urlencode(options)
-		headers = {"Content-Type": "application/x-www-form-urlencoded"}
-		self.connection.request("POST", "/rest/v1/devices/%s/%s/output" % (self.devID, channel),  options, headers)
-		return json.loads(self.connection.getresponse().read())
+		
+		if wave not in ["square", "triangle", "sine"]:
+			raise ValueError('Invalid option for "wave"')
 
-	def setOutputArbitrary(self, channel = "a", mode = "d", times = [0], values = [0]): 
+		return self.request('{0}/output'.format(channel), 'POST',
+			mode = mode,
+			wave = wave,
+			value = value,
+			amplitude = amplitude,
+			frequency = frequency,
+			relPhase = relPhase,
+			phase = phase
+		)
+
+	# deprecated alias
+	setOutputRepeating = setOutputWave
+
+	def setOutputArbitrary(self, channel = "a", mode = "d", times = None, values = [], repeat=1, startTime=-1): 
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'times' is a list of times in seconds.
-			'values' is a list of values in SI units, either volts or amps."""
-		values = [value * 1000.0 if mode == "i" else value for value in values]
-		output = [{"t":times[i]/self.devInfo['sampleTime'], "v":values[i]} for i in range(len(times))]
-		options = {"mode": {"d":0,"v":1,"i":2}[mode], "values": output, "offset":-1, "source": "arb"}
-		options = json.dumps(options)
-		headers = {"Content-Type": "text/json"}
-		self.connection.request("POST", "/rest/v1/devices/%s/%s/output" % (self.devID, channel),  options, headers)
-		return json.loads(self.connection.getresponse().read())
+			'values' is a list of values, either in V or mA depending on mode.
+			If 'times' is None, 'values' is a list of (time, value) tuples.
+			'repeat' is the number of times to repeat the waveform. -1 for infinite
+			'startTime' is the phase offset in sample units"""
+
+		if times is not None:
+			values = zip(times, values)
+
+		values.sort()
+
+		if len(values) < 1:
+			raise ValueError("Arb wave must have at least one point.")
+
+		if values[0][0] != 0:
+			raise ValueError("Arb wave first point must have t=0.")
+
+		period = values[-1][0]
+		if period == 0 and repeat != 1:
+			raise ValueError("Arb wave with repeat must have nonzero period.")
+
+
+		print values
+
+		points = ','.join(
+			"{0}:{1}".format(t,v) for t,v, in values
+		)
+
+		return self.request('{0}/output'.format(channel), 'POST',
+			mode = mode,
+			wave = 'arb',
+			points = points,
+			repeat = repeat,
+			startTime = startTime
+		)
 
 	def setInput(self, channel = "a", vGain = 1, iGain = 1):
 		""" Set the input gain for both streams of a given channel."""
@@ -156,10 +188,7 @@ class CEE:
 		if iGain not in Gains[0:-1]:
 			raise Exception("Invalid current gain.")
 		options = {"gain_v":vGain, "gain_i":iGain}
-		options = urllib.urlencode(options)
-		headers = {"Content-Type": "application/x-www-form-urlencoded"}
-		self.connection.request("POST", "/rest/v1/devices/%s/%s/input" % (self.devID, channel),  options, headers)
-		return json.loads(self.connection.getresponse().read())
+		return self.request('{0}/input'.format(channel), 'POST', **options)
 
 	def getInput(self, channel = "a", resample = .01, count = 1, start = None):
 		""" Returns a pair of lists indicating the measured state of the specified channel.
@@ -169,10 +198,11 @@ class CEE:
 		options = {"resample":resample, "count":count, "header":0}
 		if start != None:
 			options['start'] = start
-		options = "?" + urllib.urlencode(options)
-		self.connection.request("GET", "/rest/v1/devices/%s/%s/input" % (self.devID, channel) + options)
+
+		response = self.request('{0}/input?{1}'.format(channel, urllib.urlencode(options)), jsonReply=False)
+
 		values = [[float(item) for item in item.split(',')] 
-			for item in self.connection.getresponse().read().split('\n') 
+			for item in response.split('\n') 
 			if item != '']
 		values = map(list, zip(*values))
 		if count == 1:
