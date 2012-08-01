@@ -8,45 +8,91 @@
 import httplib, atexit, urllib, json
 
 class CEE:
+	def __init__(self, devID = "com.nonolithlabs.cee*", start=True, server="localhost:9003"):
+		""" Starts an HTTP connection, determines the target device ID, and optionally starts capture."""
+		self.connection = httplib.HTTPConnection(server)
 
-	def __init__(self, devID = "com.nonolithlabs.cee*"):
-		""" Starts an HTTP connection, determines the target device ID, and starts capture."""
-		self.connection = httplib.HTTPConnection("localhost:9003")
+		deviceList = self.request("/rest/v1/devices/")
+
+		for deviceEntry in deviceList.itervalues():
+			if deviceEntry['model'] == 'com.nonolithlabs.cee':
+				if deviceEntry['id'] == devID or devID == "com.nonolithlabs.cee*":
+					break
+		else:
+			raise Exception('Device not found.')
+
+		self.devID = deviceEntry['id']
+		self.deviceResource = "/rest/v1/devices/{0}/".format(self.devID)
+
+		self.getInfo()
+
+		self.stopOnClose = False
 		atexit.register(self._onClose)
 
-		self.connection.request("GET", "/rest/v1/devices/")
-		if json.loads(self.connection.getresponse().read()) == {}:
-			raise Exception('No devices found.')
+		if start:
+			self.start(True)
 
-		if devID == "com.nonolithlabs.cee*":
-			self.devID = devID
-		else:
-			self.connection.request("GET", "/rest/v1/devices/")
-			response = json.loads(self.connection.getresponse().read())
-			if response.keys()[0] == devID:
-				self.devID = devID
-			else:
-				raise Exception('Invalid devID.')
+	def request(self, path, method='GET', encoding='url', jsonReply=True, **kwds):
+		"""Send a request to the server.
+			`path` is relative to the device resource if it does not begin with '/'.
+			Keyword arguments are passed as POST parameters.
+		"""
+		if not path.startswith('/'): path = self.deviceResource + path
 
-		headers = {"Content-Type": "application/x-www-form-urlencoded"}
-		options = {"sampleTime":0.000025, "current":200, "samples":48000}
-		options = urllib.urlencode(options)
-		self.connection.request("POST", "/rest/v1/devices/%s/configuration" % self.devID, options, headers)
-		self.connection.getresponse()
-		options = {"capture":"on"}
-		options = urllib.urlencode(options)
-		self.connection.request("POST", "/rest/v1/devices/%s" % self.devID, options, headers)
-		self.connection.getresponse()
-		self.connection.request("GET", "/rest/v1/devices/%s" % self.devID)
-		self.devInfo = json.loads(self.connection.getresponse().read())
+		#print method, path, kwds
+
+		if method == 'GET':
+			self.connection.request(method, path)
+		elif method == 'POST' and encoding == 'url':
+			headers = {"Content-Type": "application/x-www-form-urlencoded"}
+			body = urllib.urlencode(kwds)
+			self.connection.request(method, path, body, headers)
+
+		r = self.connection.getresponse().read()
+		if jsonReply:
+			r = json.loads(r)
+		return r
+
+	def getInfo(self):
+		"""Refresh the device metadata"""
+		self.devInfo = self.request('')
+
+	def start(self, stopOnClose=False):
+		"""Start sampling. If stopOnClose is true, the CEE will stop automatically when python exits."""
+		self.request('', 'POST', capture='on')
+		self.stopOnClose = stopOnClose
+
+	def pause(self):
+		"""Stop sampling."""
+		self.request('', 'POST', capture='off')
+
+	def setSampleRate(self, sampleRate):
+		"""Set the sample rate of the device"""
+		if sampleRate < 1000:
+			sampleRate *= 1000
+
+		if sampleRate not in [1000, 5000, 10000, 20000, 40000, 80000, 100000]:
+			raise ValueError("Invalid sample rate")
+
+		sampleTime = 1.0 / sampleRate
+		if sampleTime == self.devInfo['sampleTime']:
+			return True
+
+		if sampleTime < self.devInfo.get('minSampleTime', 1.0/40e3):
+			raise ValueError("The device does not support this sample rate.")
+
+		nsamples = int(self.devInfo['samples'] * self.devInfo['sampleTime'] / sampleTime)
+
+		self.request('configuration', 'POST', sampleTime=sampleTime, samples=nsamples)
+		self.getInfo()
+
+		if self.stopOnClose:
+			self.start(True)
+
 
 	def _onClose(self):
-		""" Stop capturing and close the HTTP connection."""
-		options = {"capture":"off"}
-		options = urllib.urlencode(options)
-		headers = {"Content-Type": "application/x-www-form-urlencoded"}
-		self.connection.request("POST", "/rest/v1/devices/%s" % self.devID, options, headers)
-		self.connection.getresponse()
+		if self.stopOnClose:
+			self.pause()
 		self.connection.close()
 
 	def getOutput(self, channel = "a"):
