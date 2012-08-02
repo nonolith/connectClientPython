@@ -134,13 +134,13 @@ class CEE:
 	# deprecated alias
 	setOutputRepeating = setOutputWave
 
-	def setOutputArbitrary(self, channel = "a", mode = "d", times = [], values = None, repeat=1, startTime=-1): 
+	def setOutputArbitrary(self, channel = "a", mode = "d", times = [], values = None, repeat=1, phase=-1): 
 		""" Set the output state for a given channel.
 			'mode' can be 'v' to set voltage, 'i' to set current, or 'd' for high impedance mode.
 			'times' is a list of times in seconds, or a list of (time, value) tuples if 'values' is None.
 			'values' is a list of values, either in V or mA depending on mode, or None if the values are included in the 'times' list.
 			'repeat' is the number of times to repeat the waveform. -1 for infinite
-			'startTime' is the phase offset in sample units"""
+			'phase' is the offset of the start time in seconds. -1 means start at the time the source takes effect"""
 
 		if values is not None:
 			values = zip(times, values)
@@ -172,7 +172,7 @@ class CEE:
 			wave = 'arb',
 			points = points,
 			repeat = repeat,
-			startTime = startTime
+			phase = phase
 		)
 
 	def setInput(self, channel = "a", vGain = 1, iGain = 1):
