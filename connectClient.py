@@ -148,7 +148,7 @@ class CEE:
 			# because times comes first, so it can be passed positionally
 			values = times
 
-		values.sort()
+		values.sort(key=lambda x: x[0])
 
 		if len(values) < 1:
 			raise ValueError("Arb wave must have at least one point.")
@@ -161,7 +161,7 @@ class CEE:
 			raise ValueError("Arb wave with repeat must have nonzero period.")
 
 
-		print values
+		#print values
 
 		points = ','.join(
 			"{0}:{1}".format(t,v) for t,v, in values
