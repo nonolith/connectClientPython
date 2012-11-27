@@ -211,3 +211,7 @@ class CEE:
 			return [value[0] for value in values]
 		else:
 			return values
+
+	def setGPIO(self, direction, state):
+		options = {"dir":int(direction)&0x0F, "out":int(state)&0x0F}
+		return self.request('gpio', 'POST', **options)
