@@ -26,16 +26,14 @@ def parseData(data):
 	# find high values, parse 1 as longer than 4 samples
 	b = map(lambda x: x[0] > 4, filter(lambda x: (x[1] == True) and (x[0] < 20), rled))[3::]
 
-	# convert to 8b words
-	d = map(lambda x: BitArray(x).uint, _chunk(b, 8))
+	# convert to words
+	d = map(lambda x: BitArray(x).uint, _chunk(b, 16))
 
 	# verify checksum
-	assert(sum(d[0:4])%256 == d[-1])
+	assert(sum(d[0:2])%256 == d[-1])
 
 	# decode
-	p = np.array(d[0:4])*np.array([255, 1]*2)
-
-	return ((p[0] + p[1])/10., (p[2] + p[3])/10.)
+	return d[0]/10.0, d[1]/10.0
 
 if __name__ == "__main__":
 	cee = connectClient.CEE(start=True)
